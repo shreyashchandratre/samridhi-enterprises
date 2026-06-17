@@ -90,6 +90,9 @@ const ProductsPage = () => {
   const [sortBy, setSortBy] = useState("name");
   const [priceRange, setPriceRange] = useState([0, 10000]);
   const filterDropdownRef = useRef(null);
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(12);
 
   useEffect(() => {
     dispatch(fetchParts());
@@ -125,6 +128,14 @@ const ProductsPage = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Whenever any filter or sort changes, jump back to page 1 so the user
+  // never sees a now-empty page (e.g. they were on page 4, narrowed the
+  // search, and the results now fit on 2 pages).
+  useEffect(() => {
+    setCurrentPage(1);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchTerm, filterCategory, filterCompatibility, filterBrand, filterYear, filterEngine, filterStockStatus, sortBy, priceRange]);
+
   const handleFilterCompatibilityChange = (modelId) => {
     setFilterCompatibility((prev) =>
       prev.includes(modelId)
@@ -142,6 +153,7 @@ const ProductsPage = () => {
     setFilterEngine("");
     setFilterStockStatus("");
     setPriceRange([0, 10000]);
+    setCurrentPage(1);
   };
 
   // Resolve a part's vehicleCompatibility entries (which only carry model id +
@@ -243,6 +255,16 @@ const ProductsPage = () => {
           return a.name.localeCompare(b.name);
       }
     });
+
+  // Reset to page 1 whenever any filter changes so the user never lands on a
+  // now-empty page (e.g. was on page 3, adds a filter, results shrink to 1 page).
+  // We derive this value rather than tracking in an effect to avoid double-render.
+  const totalFiltered = sortedAndFilteredParts.length;
+  const totalPages = Math.max(1, Math.ceil(totalFiltered / pageSize));
+  // Clamp currentPage in case filters just reduced the page count.
+  const safePage = Math.min(currentPage, totalPages);
+  const pageStart = (safePage - 1) * pageSize;
+  const paginatedParts = sortedAndFilteredParts.slice(pageStart, pageStart + pageSize);
 
   const activeFiltersCount = [
     searchTerm,
@@ -523,10 +545,24 @@ const ProductsPage = () => {
           </div>
         </div>
 
-        <div className="flex items-center justify-between mb-4 px-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 px-4 gap-2">
           <p className="text-sm text-gray-600">
-            Showing {sortedAndFilteredParts.length} of {parts.length} parts
+            {totalFiltered === 0
+              ? "No parts found"
+              : `Showing ${pageStart + 1}–${Math.min(pageStart + pageSize, totalFiltered)} of ${totalFiltered} part${totalFiltered !== 1 ? "s" : ""}${totalFiltered < parts.length ? ` (filtered from ${parts.length})` : ""}`}
           </p>
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-gray-500">Per page:</label>
+            <select
+              value={pageSize}
+              onChange={(e) => { setPageSize(Number(e.target.value)); setCurrentPage(1); }}
+              className="text-sm border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              {[6, 12, 24, 48].map((n) => (
+                <option key={n} value={n}>{n}</option>
+              ))}
+            </select>
+          </div>
         </div>
 
         {sortedAndFilteredParts.length === 0 ? (
@@ -559,7 +595,7 @@ const ProductsPage = () => {
         ) : (
           <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 px-4">
             <AnimatePresence>
-              {sortedAndFilteredParts.map((part) => (
+              {paginatedParts.map((part) => (
                 <motion.div
                   key={part._id}
                   layout
@@ -648,6 +684,74 @@ const ProductsPage = () => {
                 </motion.div>
               ))}
             </AnimatePresence>
+          </div>
+        )}
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-center gap-2 mt-8 px-4 flex-wrap">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => { setCurrentPage(1); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+              disabled={safePage === 1}
+              className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              aria-label="First page"
+            >
+              «
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => { setCurrentPage((p) => Math.max(1, p - 1)); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+              disabled={safePage === 1}
+              className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              aria-label="Previous page"
+            >
+              ‹
+            </motion.button>
+
+            {/* Page number buttons — show up to 5 around the current page */}
+            {Array.from({ length: totalPages }, (_, i) => i + 1)
+              .filter((n) => Math.abs(n - safePage) <= 2)
+              .map((n) => (
+                <motion.button
+                  key={n}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => { setCurrentPage(n); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                  className={`px-3 py-2 text-sm rounded-lg border transition-colors ${
+                    n === safePage
+                      ? "bg-blue-500 text-white border-blue-500 font-semibold"
+                      : "border-gray-300 hover:bg-gray-50"
+                  }`}
+                  aria-label={`Page ${n}`}
+                  aria-current={n === safePage ? "page" : undefined}
+                >
+                  {n}
+                </motion.button>
+              ))}
+
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => { setCurrentPage((p) => Math.min(totalPages, p + 1)); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+              disabled={safePage === totalPages}
+              className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              aria-label="Next page"
+            >
+              ›
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => { setCurrentPage(totalPages); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+              disabled={safePage === totalPages}
+              className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              aria-label="Last page"
+            >
+              »
+            </motion.button>
           </div>
         )}
 

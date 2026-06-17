@@ -35,11 +35,36 @@ const Cart = () => {
   }, [error, dispatch]);
 
   const handleUpdateQuantity = (partId, quantity, stock) => {
-    if (quantity < 1 || quantity > stock) {
-      toast.error("Invalid quantity selected");
+    // Ignore empty / non-numeric input (e.g. while the field is mid-edit or
+    // cleared) silently — don't error or dispatch, so the user can keep typing.
+    if (quantity === "" || quantity === null || Number.isNaN(quantity)) {
       return;
     }
-    dispatch(updateCartItem({ partId, quantity })).then((result) => {
+
+    // Only whole numbers are valid quantities.
+    if (!Number.isInteger(quantity)) {
+      toast.error("Quantity must be a whole number");
+      return;
+    }
+
+    if (stock <= 0) {
+      toast.error("This item is out of stock");
+      return;
+    }
+
+    // Clamp to the valid range instead of rejecting outright, so a value below
+    // 1 becomes 1 and a value above stock becomes the max available — with a
+    // clear note when we had to adjust the user's input.
+    let nextQuantity = quantity;
+    if (quantity < 1) {
+      nextQuantity = 1;
+      toast.info("Minimum quantity is 1");
+    } else if (quantity > stock) {
+      nextQuantity = stock;
+      toast.info(`Only ${stock} in stock — quantity set to ${stock}`);
+    }
+
+    dispatch(updateCartItem({ partId, quantity: nextQuantity })).then((result) => {
       if (updateCartItem.fulfilled.match(result)) {
         dispatch(fetchCart());
       } else if (updateCartItem.rejected.match(result)) {
@@ -306,14 +331,21 @@ const Cart = () => {
 
                               <input
                                 type="number"
+                                min="1"
+                                max={item.part.stock}
+                                step="1"
                                 value={item.quantity}
-                                onChange={(e) =>
+                                onChange={(e) => {
+                                  const raw = e.target.value;
+                                  // Pass an empty field through untouched so the
+                                  // user can clear it and type a new number
+                                  // without triggering a validation error.
                                   handleUpdateQuantity(
                                     item.part._id,
-                                    Number(e.target.value),
+                                    raw === "" ? "" : Number(raw),
                                     item.part.stock
-                                  )
-                                }
+                                  );
+                                }}
                                 className="w-16 h-10 text-center border-0 bg-transparent font-semibold text-lg focus:outline-none focus:ring-2 focus:ring-blue-400 rounded-lg mx-2"
                                 disabled={item.part.stock === 0}
                               />
