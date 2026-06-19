@@ -13,6 +13,7 @@ import { addToCart } from "../../store/cart/cartSlice";
 import { toast } from "react-toastify";
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from "framer-motion";
+import SEO from "../../components/SEO";
 
 const SingleProduct = () => {
   const { id } = useParams();
@@ -209,8 +210,30 @@ const SingleProduct = () => {
 
   const stockStatus = getStockStatus();
 
+  const productSchema = {
+    "@context": "https://schema.org/",
+    "@type": "Product",
+    "name": part.name,
+    "image": part.images?.map(img => img.url) || [],
+    "description": part.description,
+    "sku": part.product_id,
+    "offers": {
+      "@type": "Offer",
+      "url": typeof window !== "undefined" ? window.location.href : "",
+      "priceCurrency": "INR",
+      "price": part.price,
+      "availability": part.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock"
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50">
+      <SEO 
+        title={part.name} 
+        description={part.description} 
+        image={part.images?.[0]?.url} 
+        schema={productSchema} 
+      />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-16">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -557,6 +580,7 @@ const SingleProduct = () => {
                         <img
                           src={item.images?.[0]?.url || "/images/placeholder.jpg"}
                           alt={item.name || "Product"}
+                          loading="lazy"
                           className="w-full h-40 object-cover"
                         />
                         {item.bestseller && (
