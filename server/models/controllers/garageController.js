@@ -1,4 +1,4 @@
-import Garage from "../models/garageModel.js";
+ import Garage from "../models/garageModel.js";
 
 export const addVehicle = async (req, res, next) => {
   try {
@@ -30,6 +30,21 @@ export const addVehicle = async (req, res, next) => {
     res.status(201).json({
       success: true,
       vehicle,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getVehicles = async (req, res, next) => {
+  try {
+    const vehicles = await Garage.find({
+      user: req.user._id,
+    });
+
+    res.status(200).json({
+      success: true,
+      vehicles,
     });
   } catch (error) {
     next(error);
