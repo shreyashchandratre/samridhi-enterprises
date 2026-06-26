@@ -11,6 +11,8 @@ import {
   clearPartSuccess,
 } from "../../store/product/partsSlice";
 import { addToCart } from "../../store/cart/cartSlice";
+import { addToWishlist, removeFromWishlist } from "../../store/wishlist/wishlistSlice";
+import { Heart } from "lucide-react";
 import { toast } from "react-toastify";
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from "framer-motion";
@@ -25,6 +27,8 @@ const SingleProduct = () => {
     (state) => state.parts
   );
   const { isAuthenticated, user } = useSelector((state) => state.auth);
+  const { wishlist } = useSelector((state) => state.wishlist);
+  const wishlistItems = wishlist?.items || [];
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [rating, setRating] = useState(0);
@@ -83,6 +87,24 @@ const SingleProduct = () => {
       })
     );
     toast.success(`${part.name} added to cart!`);
+  };
+
+  // Add or remove the current product from the user's (server-backed) wishlist.
+  // Mirrors the pattern used on the products listing page; handles both the
+  // populated (item.part._id) and raw (item.part) wishlist item shapes.
+  const isInWishlist = (id) =>
+    wishlistItems.some((i) => (i.part?._id || i.part) === id);
+  const toggleWishlist = () => {
+    if (!isAuthenticated) {
+      toast.info("Please log in to use your wishlist");
+      return;
+    }
+    if (!part?._id) return;
+    if (isInWishlist(part._id)) {
+      dispatch(removeFromWishlist(part._id));
+    } else {
+      dispatch(addToWishlist(part._id));
+    }
   };
 
   const handleSubmitReview = (e) => {
@@ -573,6 +595,30 @@ const SingleProduct = () => {
                   }`}
                 >
                   {part.stock > 0 ? "Add to Cart" : "Out of Stock"}
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={toggleWishlist}
+                  aria-label={
+                    isInWishlist(part._id)
+                      ? "Remove from wishlist"
+                      : "Add to wishlist"
+                  }
+                  className={`w-full py-4 rounded-2xl font-bold text-lg flex items-center justify-center gap-2 border-2 transition-all duration-300 ${
+                    isInWishlist(part._id)
+                      ? "border-red-500 text-red-500 bg-red-50 hover:bg-red-100"
+                      : "border-gray-300 text-gray-600 bg-white hover:border-red-300 hover:text-red-500"
+                  }`}
+                >
+                  <Heart
+                    className={`w-5 h-5 transition ${
+                      isInWishlist(part._id) ? "fill-red-500 text-red-500" : ""
+                    }`}
+                  />
+                  {isInWishlist(part._id)
+                    ? "Remove from Wishlist"
+                    : "Add to Wishlist"}
                 </motion.button>
               </motion.div>
             </motion.div>
