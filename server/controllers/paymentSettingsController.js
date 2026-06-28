@@ -34,12 +34,17 @@ export const adminUpdatePaymentSettings = catchAsyncErrors(
       settings.upiId = upiId.trim();
     }
 
+    // Multipart form values arrive as strings ("true" / "false").
     if (typeof req.body.notifyAdminsOnNewOrder !== "undefined") {
-      settings.notifyAdminsOnNewOrder = req.body.notifyAdminsOnNewOrder;
+      settings.notifyAdminsOnNewOrder =
+        req.body.notifyAdminsOnNewOrder === true ||
+        req.body.notifyAdminsOnNewOrder === "true";
     }
 
     if (typeof req.body.notifyAdminsOnNewTicket !== "undefined") {
-      settings.notifyAdminsOnNewTicket = req.body.notifyAdminsOnNewTicket;
+      settings.notifyAdminsOnNewTicket =
+        req.body.notifyAdminsOnNewTicket === true ||
+        req.body.notifyAdminsOnNewTicket === "true";
     }
 
     if (req.file) {

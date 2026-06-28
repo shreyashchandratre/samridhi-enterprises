@@ -21,43 +21,28 @@ import {
 import auth from "../middleware/auth.js";
 import upload from "../middleware/multer.js";
 import admin from "../middleware/Admin.js";
-import { validate } from "../middleware/validate.js";
-import {
-  registerSchema,
-  verifyEmailOtpSchema,
-  resendOtpSchema,
-  loginSchema,
-  updatePasswordSchema,
-  forgotPasswordSchema,
-  verifyOtpSchema,
-  resetPasswordSchema,
-  updateUserDetailsSchema,
-  adminUpdateUserRoleSchema,
-  adminUpdateUserStatusSchema,
-} from "../validators/userSchemas.js";
-import { idParamSchema } from "../validators/common.js";
 
 const userRouter = express.Router();
 
-userRouter.post("/register", validate(registerSchema), registerUser);
+userRouter.post("/register", registerUser);
 
-userRouter.post("/verify-email", validate(verifyEmailOtpSchema), verifyEmailOtp);
+userRouter.post("/verify-email", verifyEmailOtp);
 
-userRouter.post("/resend-otp", validate(resendOtpSchema), resendOtp);
+userRouter.post("/resend-otp", resendOtp);
 
-userRouter.post("/login", validate(loginSchema), loginUser);
+userRouter.post("/login", loginUser);
 
 userRouter.get("/logout", logoutUser);
 
 userRouter.put("/upload-avatar", upload.single("avatar"), auth, uploadAvatar);
 
-userRouter.put("/update/password", auth, validate(updatePasswordSchema), updatePassword);
+userRouter.put("/update/password", auth, updatePassword);
 
-userRouter.put("/forgot-password", validate(forgotPasswordSchema), forgotPassword);
+userRouter.put("/forgot-password", forgotPassword);
 
-userRouter.put("/verify-otp", validate(verifyOtpSchema), verifyOtp);
+userRouter.put("/verify-otp", verifyOtp);
 
-userRouter.put("/reset-password", validate(resetPasswordSchema), resetPassword);
+userRouter.put("/reset-password", resetPassword);
 
 userRouter.get("/me", auth, getUserDetails);
 
@@ -65,18 +50,17 @@ userRouter.put(
   "/update-user",
   auth,
   upload.single("avatar"),
-  validate(updateUserDetailsSchema),
   updateUserDetails
 );
 
 userRouter.get("/admin/get", auth, admin, getAllUsers);
 
-userRouter.get("/admin/get/:id", auth, admin, validate(idParamSchema), getSingleUser);
+userRouter.get("/admin/get/:id", auth, admin, getSingleUser);
 
-userRouter.put("/admin/update", auth, admin, validate(adminUpdateUserRoleSchema), updateUserRole);
+userRouter.put("/admin/update", auth, admin, updateUserRole);
 
-userRouter.delete("/admin/delete/:id", auth, admin, validate(idParamSchema), deleteUser);
+userRouter.delete("/admin/delete/:id", auth, admin, deleteUser);
 
-userRouter.patch("/admin/:id/status", auth, admin, validate(adminUpdateUserStatusSchema), updateUserStatus);
+userRouter.patch("/admin/:id/status", auth, admin, updateUserStatus);
 
 export default userRouter;

@@ -13,6 +13,10 @@ export const registerUser = catchAsyncErrors(async (req, res, next) => {
   try {
     const { name, email, password } = req.body;
 
+    if (!name || !email || !password) {
+      return next(new ErrorHandler("Please fill all required fields", 400));
+    }
+
     const existingUser = await UserModel.findOne({ email });
 
     if (existingUser) {
@@ -158,6 +162,10 @@ export const resendOtp = catchAsyncErrors(async (req, res, next) => {
 
 export const loginUser = catchAsyncErrors(async (req, res, next) => {
   const { email, password } = req.body;
+
+  if (!email || !password) {
+    return next(new ErrorHandler("Please provide email and password", 400));
+  }
 
   const user = await UserModel.findOne({ email }).select("+password");
 
@@ -310,6 +318,10 @@ export const updatePassword = catchAsyncErrors(async (req, res, next) => {
       return next(new ErrorHandler("Old password is incorrect", 400));
     }
 
+    if (req.body.newPassword !== req.body.confirmPassword) {
+      return next(new ErrorHandler("Password does not match", 400));
+    }
+
     user.password = req.body.newPassword;
     await user.save();
 
@@ -372,6 +384,10 @@ export const verifyOtp = catchAsyncErrors(async (req, res, next) => {
   try {
     const { email, otp } = req.body;
 
+    if (!email || !otp) {
+      return next(new ErrorHandler("Please provide both email and otp.", 400));
+    }
+
     const user = await UserModel.findOne({ email });
 
     if (!user) {
@@ -412,6 +428,18 @@ export const verifyOtp = catchAsyncErrors(async (req, res, next) => {
 export const resetPassword = catchAsyncErrors(async (req, res, next) => {
   try {
     const { email, newPassword, confirmPassword } = req.body;
+
+    if (!email || !newPassword || !confirmPassword) {
+      return next(new ErrorHandler("Please provide required fields: email, newPassword, and confirmPassword.", 400));
+    }
+
+    if (newPassword !== confirmPassword) {
+      return next(new ErrorHandler("New password and confirm password must be the same.", 400));
+    }
+
+    if (newPassword.length < 6) {
+      return next(new ErrorHandler("Password must be at least 6 characters long.", 400));
+    }
 
     const user = await UserModel.findOne({ email });
 
@@ -608,6 +636,10 @@ export const updateUserRole = catchAsyncErrors(async (req, res, next) => {
 
     const { email, role } = req.body;
 
+    if (!role || !["USER", "ADMIN", "MANAGER"].includes(role)) {
+      return next(new ErrorHandler("Invalid role. Role must be either 'USER', 'MANAGER', or 'ADMIN'.", 400));
+    }
+
     const user = await UserModel.findOne({ email });
 
     if (!user) {
@@ -671,6 +703,11 @@ export const updateUserStatus = catchAsyncErrors(async (req, res, next) => {
   try {
     const { status } = req.body;
     const { id } = req.params;
+
+    const allowedStatuses = ["Active", "Warning", "Suspended"];
+    if (!allowedStatuses.includes(status)) {
+      return next(new ErrorHandler("Invalid status provided", 400));
+    }
 
     const user = await UserModel.findById(id);
     if (!user) {
