@@ -15,6 +15,9 @@ import {
 } from "../controllers/partsControllers.js";
 import auth from "../middleware/auth.js";
 import admin from "../middleware/Admin.js";
+import { validate } from "../middleware/validate.js";
+import { addPartSchema, updatePartSchema, reviewSchema } from "../validators/partSchemas.js";
+import { idParamSchema } from "../validators/common.js";
 
 // Rate limiter for public catalogue-browsing endpoints (no auth required).
 // Allows generous traffic for real shoppers while guarding against scrapers
@@ -45,13 +48,14 @@ const recommendLimiter = rateLimit({
 
 const partRouter = express.Router();
 
-partRouter.post("/add", upload.array("images", 5), auth, admin, addPart);
+partRouter.post("/add", upload.array("images", 5), auth, admin, validate(addPartSchema), addPart);
 partRouter.get("/get", browseLimiter, getAllParts);
-partRouter.get("/get/:id", browseLimiter, getPartById);
-partRouter.get("/get/:id/similar", browseLimiter, getSimilarParts);
+partRouter.get("/get/:id", browseLimiter, validate(idParamSchema), getPartById);
+partRouter.get("/get/:id/similar", browseLimiter, validate(idParamSchema), getSimilarParts);
 partRouter.get(
   "/get/:id/frequently-bought-together",
   browseLimiter,
+  validate(idParamSchema),
   getFrequentlyBoughtTogether
 );
 partRouter.get(
@@ -65,10 +69,11 @@ partRouter.put(
   upload.array("images", 5),
   auth,
   admin,
+  validate(updatePartSchema),
   updatePart
 );
-partRouter.delete("/delete/:id", auth, admin, deletePart);
-partRouter.post("/review/:id", auth, createOrUpdateReview);
-partRouter.delete("/review/:id", auth, deleteReview);
+partRouter.delete("/delete/:id", auth, admin, validate(idParamSchema), deletePart);
+partRouter.post("/review/:id", auth, validate(reviewSchema), createOrUpdateReview);
+partRouter.delete("/review/:id", auth, validate(idParamSchema), deleteReview);
 
 export default partRouter;
