@@ -1,6 +1,4 @@
 import { configureStore } from "@reduxjs/toolkit";
-import { persistReducer, persistStore } from "redux-persist";
-import storage from "redux-persist/lib/storage";
 import authReducer from "./auth-slice/user";
 import otpSlice from "./auth-slice/otpSlice";
 import brandSlice from "./product/brandSlice";
@@ -14,19 +12,10 @@ import paymentSettingsSlice from "./order/paymentSettingsSlice";
 import couponSlice from "./order/couponSlice";
 import supportSlice from "./order/supportSlice";
 import addressSlice from "./order/addressSlice";
-import { setAuthDispatch } from "@/api";
-
-const authPersistConfig = {
-  key: "auth",
-  storage,
-  whitelist: ["user", "isAuthenticated"],
-};
-
-const persistedAuthReducer = persistReducer(authPersistConfig, authReducer);
 
 const store = configureStore({
   reducer: {
-    auth: persistedAuthReducer,
+    auth: authReducer,
     otp: otpSlice,
     brand: brandSlice,
     bike: bikeSlice,
@@ -41,9 +30,5 @@ const store = configureStore({
     address: addressSlice,
   },
 });
-
-setAuthDispatch(store.dispatch);
-
-export const persistor = persistStore(store);
 
 export default store;

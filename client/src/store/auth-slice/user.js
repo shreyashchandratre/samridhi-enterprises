@@ -363,7 +363,6 @@ const storedVerifyEmail = localStorage.getItem("verifyEmail") === "true";
 const initialState = {
   user: storedUser,
   isAuthenticated: !!storedToken,
-  isVerified: storedVerifyEmail,
   token: storedToken,
   loading: false,
   error: null,
@@ -374,21 +373,6 @@ const initialState = {
   success: false,
   message: null,
   verifyEmail: storedVerifyEmail,
-};
-
-const clearAuthStorage = () => {
-  localStorage.removeItem("user");
-  localStorage.removeItem("token");
-  localStorage.removeItem("verifyEmail");
-};
-
-const resetAuthState = (state) => {
-  state.user = null;
-  state.isAuthenticated = false;
-  state.isVerified = false;
-  state.token = null;
-  state.verifyEmail = false;
-  clearAuthStorage();
 };
 
 const authSlice = createSlice({
@@ -409,13 +393,6 @@ const authSlice = createSlice({
       state.error = null;
       state.success = false;
     },
-    logout: (state) => {
-      state.loading = false;
-      state.message = null;
-      state.error = null;
-      state.success = false;
-      resetAuthState(state);
-    },
   },
   extraReducers: (builder) => {
     builder
@@ -427,7 +404,6 @@ const authSlice = createSlice({
         state.loading = false;
         state.user = action.payload.user;
         state.isAuthenticated = true;
-        state.isVerified = action.payload.verifyEmail;
         state.token = action.payload.token;
         state.verifyEmail = action.payload.verifyEmail;
       })
@@ -441,7 +417,11 @@ const authSlice = createSlice({
       })
       .addCase(logoutUser.fulfilled, (state) => {
         state.loading = false;
-        resetAuthState(state);
+        state.user = null;
+        state.isAuthenticated = false;
+        state.token = null;
+        state.verifyEmail = false;
+        localStorage.removeItem("verifyEmail");
       })
       .addCase(logoutUser.rejected, (state, action) => {
         state.loading = false;
@@ -653,10 +633,8 @@ const authSlice = createSlice({
 });
 
 export const { clearError, clearState, clearAuthState } = authSlice.actions;
-export const { logout } = authSlice.actions;
 export const selectAuth = (state) => state.auth;
 export const selectIsAuthenticated = (state) => state.auth.isAuthenticated;
-export const selectIsVerified = (state) => state.auth.isVerified;
 export const selectLoading = (state) => state.auth.loading;
 export const selectUser = (state) => state.auth.user;
 export default authSlice.reducer;
