@@ -1,5 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
+import { AlertTriangle, Home, RefreshCw } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -20,92 +22,37 @@ class ErrorBoundary extends React.Component {
   };
 
   handleGoHome = () => {
-    window.location.href = "/";
+    this.props.navigate("/", { replace: true });
+    this.setState({ hasError: false, error: null });
   };
 
   render() {
     if (this.state.hasError) {
       return (
-        <div style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          minHeight: "80vh",
-          padding: "20px",
-          textAlign: "center",
-          fontFamily: "system-ui, sans-serif"
-        }}>
-          <div style={{
-            maxWidth: "500px",
-            padding: "40px",
-            borderRadius: "12px",
-            backgroundColor: "#fff",
-            boxShadow: "0 10px 25px rgba(0, 0, 0, 0.08)",
-            border: "1px solid #f0f0f0"
-          }}>
-            <div style={{
-              fontSize: "48px",
-              marginBottom: "20px",
-              color: "#ef4444"
-            }}>
-              ⚠️
+        <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 text-center">
+          <div className="w-full max-w-lg rounded-lg border border-gray-100 bg-white p-8 shadow-xl shadow-gray-200/60 sm:p-10">
+            <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-red-50 text-red-500">
+              <AlertTriangle className="h-8 w-8" aria-hidden="true" />
             </div>
-            <h1 style={{
-              fontSize: "24px",
-              fontWeight: "700",
-              color: "#1f2937",
-              marginBottom: "10px"
-            }}>
+            <h1 className="text-2xl font-bold text-gray-900">
               Something went wrong
             </h1>
-            <p style={{
-              color: "#6b7280",
-              fontSize: "16px",
-              marginBottom: "30px",
-              lineHeight: "1.5"
-            }}>
+            <p className="mt-3 text-base leading-7 text-gray-600">
               An unexpected error occurred in the application. Please try reloading the page or go back to the homepage.
             </p>
-            <div style={{
-              display: "flex",
-              gap: "12px",
-              justifyContent: "center"
-            }}>
+            <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
               <button
                 onClick={this.handleReload}
-                style={{
-                  padding: "10px 20px",
-                  borderRadius: "6px",
-                  border: "none",
-                  backgroundColor: "#2563eb",
-                  color: "#fff",
-                  fontSize: "14px",
-                  fontWeight: "600",
-                  cursor: "pointer",
-                  transition: "background-color 0.2s"
-                }}
-                onMouseOver={(e) => e.target.style.backgroundColor = "#1d4ed8"}
-                onMouseOut={(e) => e.target.style.backgroundColor = "#2563eb"}
+                className="inline-flex items-center justify-center gap-2 rounded-md bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               >
+                <RefreshCw className="h-4 w-4" aria-hidden="true" />
                 Reload Page
               </button>
               <button
                 onClick={this.handleGoHome}
-                style={{
-                  padding: "10px 20px",
-                  borderRadius: "6px",
-                  border: "1px solid #d1d5db",
-                  backgroundColor: "#fff",
-                  color: "#374151",
-                  fontSize: "14px",
-                  fontWeight: "600",
-                  cursor: "pointer",
-                  transition: "background-color 0.2s"
-                }}
-                onMouseOver={(e) => e.target.style.backgroundColor = "#f9fafb"}
-                onMouseOut={(e) => e.target.style.backgroundColor = "#fff"}
+                className="inline-flex items-center justify-center gap-2 rounded-md border border-gray-300 bg-white px-5 py-2.5 text-sm font-semibold text-gray-700 transition-colors duration-200 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               >
+                <Home className="h-4 w-4" aria-hidden="true" />
                 Go Home
               </button>
             </div>
@@ -120,6 +67,17 @@ class ErrorBoundary extends React.Component {
 
 ErrorBoundary.propTypes = {
   children: PropTypes.node.isRequired,
+  navigate: PropTypes.func.isRequired,
 };
 
-export default ErrorBoundary;
+function ErrorBoundaryWithNavigation({ children }) {
+  const navigate = useNavigate();
+
+  return <ErrorBoundary navigate={navigate}>{children}</ErrorBoundary>;
+}
+
+ErrorBoundaryWithNavigation.propTypes = {
+  children: PropTypes.node.isRequired,
+};
+
+export default ErrorBoundaryWithNavigation;

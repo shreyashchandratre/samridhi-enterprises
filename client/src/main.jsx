@@ -8,13 +8,13 @@ import { HelmetProvider } from "react-helmet-async";
 import ErrorBoundary from "./components/ErrorBoundary.jsx";
 
 createRoot(document.getElementById("root")).render(
-  <ErrorBoundary>
-    <HelmetProvider>
-      <BrowserRouter>
+  <BrowserRouter>
+    <ErrorBoundary>
+      <HelmetProvider>
         <Provider store={store}>
           <App />
         </Provider>
-      </BrowserRouter>
-    </HelmetProvider>
-  </ErrorBoundary>
+      </HelmetProvider>
+    </ErrorBoundary>
+  </BrowserRouter>
 );
