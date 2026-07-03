@@ -11,15 +11,10 @@ import {
 
 const router = express.Router();
 
-router.route("/")
-  .post(auth, addVehicle)
-  .get(auth, getVehicles);
-
-router.route("/:id")
-  .put(auth, updateVehicle)
-  .delete(auth, deleteVehicle);
-
-router.route("/:id/default")
-  .patch(auth, setDefaultVehicle);
+router.post("/", auth, addVehicle);
+router.get("/", auth, getVehicles);
+router.put("/:id", auth, updateVehicle);
+router.delete("/:id", auth, deleteVehicle);
+router.patch("/:id/default", auth, setDefaultVehicle);
 
 export default router;
