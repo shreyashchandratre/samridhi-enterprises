@@ -34,6 +34,7 @@ const Footer = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [hoveredSection, setHoveredSection] = useState(null);
   const prefersReducedMotion = useReducedMotion();
+  const [year] = useState(() => new Date().getFullYear());
 
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, { stiffness: 100, damping: 30 });
@@ -388,7 +389,7 @@ const Footer = () => {
           >
             <div className="flex flex-col sm:flex-row justify-between items-center space-y-6 sm:space-y-0">
               <p className="text-gray-500 dark:text-gray-400 text-sm text-center sm:text-left">
-                © {new Date().getFullYear()} Samridhi Enterprises. All rights
+                &copy; {year} Samridhi Enterprises. All rights
                 reserved.
               </p>
               <motion.button
