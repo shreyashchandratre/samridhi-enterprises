@@ -5,7 +5,6 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 // eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
 
 export default function BrandList() {
   const dispatch = useDispatch();
@@ -16,7 +15,6 @@ export default function BrandList() {
   const [atStart, setAtStart] = useState(true);
   const [atEnd, setAtEnd] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
-  const navigate = useNavigate();
 
   useEffect(() => {
     dispatch(fetchBrands());
