@@ -447,7 +447,7 @@ const Checkout = () => {
                       <span className="text-gray-400 dark:text-gray-500">x{item.quantity}</span>
                     </span>
                     <span className="font-semibold text-gray-900 dark:text-gray-100 whitespace-nowrap">
-                      ₹{item.price?.toLocaleString()}
+                      ₹{((item.price || 0) * (item.quantity || 1)).toLocaleString()}
                     </span>
                   </div>
                 ))}
